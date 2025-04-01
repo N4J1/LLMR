@@ -20,10 +20,31 @@ export const ALLOWED_MODELS = [
 // Create a Zod enum from the allowed models array
 const allowedModelsEnum = z.enum(ALLOWED_MODELS);
 
+// Schema for the image_url field
+const imageUrlSchema = z.object({
+  url: z.string().url().or(z.string().startsWith('data:image/')),
+}).strict();
+
+// Schema for content parts (text or image)
+const contentPartSchema = z.union([
+  z.object({ 
+    type: z.literal('text'), 
+    text: z.string() 
+  }).strict(),
+  z.object({ 
+    type: z.literal('image_url'), 
+    image_url: imageUrlSchema // image_url is an object with a url field
+  }).strict(),
+]);
+
 // Zod schema for message validation
 const messageSchema = z.object({
   role: z.enum(['system', 'user', 'assistant']),
-  content: z.string(),
+  // content can be a string or an array of parts
+  content: z.union([
+    z.string(),
+    z.array(contentPartSchema).min(1),
+  ]),
   // Add other potential fields if needed (e.g., name)
 }).strict(); // Disallow extra fields in messages
 
