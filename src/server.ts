@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet'; // Import helmet
 import pinoHttp from 'pino-http'; // Import pino-http
 import rateLimit from 'express-rate-limit'; // Import rate-limit
+import cors from 'cors';
 import logger from './core/logger'; // Import the logger instance
 import config from './config'; // Import config to potentially use PORT
 import chatRoutes from './modules/chat/chat.routes'; // Import chat routes
@@ -19,7 +20,19 @@ const app: Express = express();
 // Use port from config
 const port = config.port;
 
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.CORS_ALLOWED_ORIGINS ? 
+    process.env.CORS_ALLOWED_ORIGINS.split(',') : 
+    '*', // Default to allowing all origins if not specified
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+};
+
 // Middlewares
+app.use(cors(corsOptions)); // Enable CORS with configuration
 app.use(pinoHttp({ logger })); // Use pino-http for request logging
 app.use(helmet()); // Apply security headers
 app.use(express.json()); // Parse JSON bodies
